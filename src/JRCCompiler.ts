@@ -1,15 +1,18 @@
 type HTMLSvgElement = HTMLElement|SVGElement
 
-const _JRCAppendChild = (parent:HTMLSvgElement, child:HTMLSvgElement|HTMLSvgElement[]|string) => {
+const _JRCAppendChild = (parent:HTMLSvgElement, child:HTMLSvgElement|HTMLSvgElement[]|string|number) => {
 	if (Array.isArray(child)){
         //nested child
 		child.forEach((nestedChild) => _JRCAppendChild(parent,nestedChild))
     }else if (typeof child == "string"){
         //text node
         parent.appendChild(document.createTextNode(child))
-    }else{
+    }else if (child instanceof HTMLElement || child instanceof SVGElement){
         //normal child
 		parent.appendChild(child)
+    }else{
+        //text node (from number, boolean, etc)
+        parent.appendChild(document.createTextNode(child.toString()))
     }
 }
 
