@@ -1,5 +1,5 @@
 # Jaspers React-like Compiler (JRC)
-I know, it's yet another Javascript Framework, but this one is very small (just about 2KB).
+I know, it's yet another Javascript Framework, but this one is very small (just about 5KB).
 It doesn't need react, but it uses the `tsc` to compile the jsx code.
 
 > ### ❌ No Support
