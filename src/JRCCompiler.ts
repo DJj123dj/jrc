@@ -1,4 +1,6 @@
-const _JRCAppendChild = (parent:HTMLElement, child:HTMLElement|HTMLElement[]|string) => {
+type HTMLSvgElement = HTMLElement|SVGElement
+
+const _JRCAppendChild = (parent:HTMLSvgElement, child:HTMLSvgElement|HTMLSvgElement[]|string) => {
 	if (Array.isArray(child)){
         //nested child
 		child.forEach((nestedChild) => _JRCAppendChild(parent,nestedChild))
@@ -11,9 +13,77 @@ const _JRCAppendChild = (parent:HTMLElement, child:HTMLElement|HTMLElement[]|str
     }
 }
 
-export const _JRCCreateElement = (tag:(keyof HTMLElementTagNameMap)|((props:object|undefined, children:HTMLElement[]) => HTMLElement), props?:object, ...children:HTMLElement[]) => {
+const _JRCSvgTags: string[] = [   
+    "animate",
+    "animateMotion",
+    "animateTransform",
+    "circle",
+    "clipPath",
+    "defs",
+    "desc",
+    "ellipse",
+    "feBlend",
+    "feColorMatrix",
+    "feComponentTransfer",
+    "feComposite",
+    "feConvolveMatrix",
+    "feDiffuseLighting",
+    "feDisplacementMap",
+    "feDistantLight",
+    "feDropShadow",
+    "feFlood",
+    "feFuncA",
+    "feFuncB",
+    "feFuncG",
+    "feFuncR",
+    "feGaussianBlur",
+    "feImage",
+    "feMerge",
+    "feMergeNode",
+    "feMorphology",
+    "feOffset",
+    "fePointLight",
+    "feSpecularLighting",
+    "feSpotLight",
+    "feTile",
+    "feTurbulence",
+    "filter",
+    "foreignObject",
+    "g",
+    "image",
+    "line",
+    "linearGradient",
+    "marker",
+    "mask",
+    "metadata",
+    "mpath",
+    "path",
+    "pattern",
+    "polygon",
+    "polyline",
+    "radialGradient",
+    "rect",
+    "set",
+    "stop",
+    "svg",
+    "switch",
+    "symbol",
+    "text",
+    "textPath",
+    "tspan",
+    "use",
+    "view"
+]
+
+export const _JRCCreateElement = (tag:string|((props:object|undefined, children:HTMLSvgElement[]) => HTMLSvgElement), props?:object, ...children:HTMLSvgElement[]) => {
     if (typeof tag === "function") return tag(props, children)
-	const element = document.createElement(tag)
+
+    let element: HTMLSvgElement
+    if (_JRCSvgTags.includes(tag)){
+        element = document.createElementNS("http://www.w3.org/2000/svg",tag)
+    }else{
+        element = document.createElement(tag)
+    }
 
 	Object.entries(props || {}).forEach(([name, value]) => {
 		if (name.startsWith("on") && name.toLowerCase() in window){

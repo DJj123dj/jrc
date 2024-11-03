@@ -12,10 +12,77 @@ const _JRCAppendChild = (parent, child) => {
         parent.appendChild(child);
     }
 };
+const _JRCSvgTags = [
+    "animate",
+    "animateMotion",
+    "animateTransform",
+    "circle",
+    "clipPath",
+    "defs",
+    "desc",
+    "ellipse",
+    "feBlend",
+    "feColorMatrix",
+    "feComponentTransfer",
+    "feComposite",
+    "feConvolveMatrix",
+    "feDiffuseLighting",
+    "feDisplacementMap",
+    "feDistantLight",
+    "feDropShadow",
+    "feFlood",
+    "feFuncA",
+    "feFuncB",
+    "feFuncG",
+    "feFuncR",
+    "feGaussianBlur",
+    "feImage",
+    "feMerge",
+    "feMergeNode",
+    "feMorphology",
+    "feOffset",
+    "fePointLight",
+    "feSpecularLighting",
+    "feSpotLight",
+    "feTile",
+    "feTurbulence",
+    "filter",
+    "foreignObject",
+    "g",
+    "image",
+    "line",
+    "linearGradient",
+    "marker",
+    "mask",
+    "metadata",
+    "mpath",
+    "path",
+    "pattern",
+    "polygon",
+    "polyline",
+    "radialGradient",
+    "rect",
+    "set",
+    "stop",
+    "svg",
+    "switch",
+    "symbol",
+    "text",
+    "textPath",
+    "tspan",
+    "use",
+    "view"
+];
 const _JRCCreateElement = (tag, props, ...children) => {
     if (typeof tag === "function")
         return tag(props, children);
-    const element = document.createElement(tag);
+    let element;
+    if (_JRCSvgTags.includes(tag)) {
+        element = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    }
+    else {
+        element = document.createElement(tag);
+    }
     Object.entries(props || {}).forEach(([name, value]) => {
         if (name.startsWith("on") && name.toLowerCase() in window) {
             //this is an event (=> add event listener instead)
