@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "target": "ES2023",
+
+        "jsx": "react",
+        "jsxFactory": "_JRCCreateElement",
+        "jsxFragmentFactory": "",
+
+        "outDir": "public/js",
+        "declaration": false,
+        "strictNullChecks": true,
+        "strictPropertyInitialization": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true
+    },
+    "include": ["./src/*","./src/**/*"]
+}

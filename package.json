@@ -1,0 +1,14 @@
+{
+    "name": "jaspers-react-compiler",
+    "description": "A very small alternative to any javascript jsx compiler!",
+    "version": "1.0.0",
+    "scripts": {
+        "build:cleanup": "rm -rf ./public/js/",
+        "build:tsc": "tsc -p tsconfig.json",
+        "build:imports": "node imports.js",
+        "build": "npm run build:cleanup && npm run build:tsc && npm run build:imports"
+    },
+    "keywords": [],
+    "author": "DJj123dj",
+    "license": "ISC"
+}
