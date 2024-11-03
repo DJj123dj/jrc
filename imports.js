@@ -1,10 +1,29 @@
 const fs = require("fs")
-const files = fs.readdirSync("./public/js/")
-files.forEach((file) => {
-    let text = fs.readFileSync("./public/js/"+file).toString()
 
-    text = text.replace('import { _JRCCreateElement } from "./JRCCompiler";\n',"")
-    text = text.replace('export const _JRCCreateElement = ',"const _JRCCreateElement = ")
+/**@param {string} dir  */
+function handleFilesInDir(dir){
+    const files = fs.readdirSync(dir)
+    files.forEach((file) => {
+        if (file.endsWith(".js")){
+            const text = fs.readFileSync(dir+file).toString()
+            const splitted = text.split("\n")
+            const newSplitted = []
 
-    fs.writeFileSync("./public/js/"+file,text)
-})
+            //remove all imports and exports
+            splitted.forEach((row) => {
+                if (row.startsWith("import ")) return
+                else if (row.startsWith("export ")){
+                    newSplitted.push(row.substring(7))
+                }else newSplitted.push(row)
+            })
+
+            fs.writeFileSync(dir+file,newSplitted.join("\n"))
+
+        }else{
+            //recursive dir handling
+            handleFilesInDir(dir+file+"/")
+        }
+    })
+}
+
+handleFilesInDir("./public/js/")
