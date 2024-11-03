@@ -45,3 +45,21 @@ It will generate a script that you can import in a HTML file. You also need to i
     </body>
 </html>
 ```
+
+### Output
+When you've applied the previous example and you use any static html provider, the html visible in the browser will normally look like this:
+```html
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="./js/JRCCompiler.js"></script>
+        <script src="./js/example.js"></script>
+    </head>
+    <body>
+        <main>
+            <div>Hello World!</div>
+            <div>Hello Jasper!</div>
+        </main>
+    </body>
+</html>
+```
