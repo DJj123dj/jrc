@@ -153,21 +153,26 @@ export function _JRCClassStyle(props:{class:string}): string {
 
 class _JRCClassStyleElement {
     element: HTMLSvgElement
-    scopes: {scopeId:string, styles:{id:string, style:string}[], element:HTMLSvgElement}[] = []
+    scopes: {scopeId:string, styles:{id:string, style:string}[], initialStyle: string, element:HTMLSvgElement}[] = []
     styles: {id:string, style:string}[] = []
-    currentStyle: string|null = null
+    currentStyleId: string|null = null
+    initialStyle: string
 
     constructor(element:(manager:_JRCClassStyleElement) => HTMLSvgElement){
         this.element = element(this)
+        this.initialStyle = this.element.classList.value
     }
 
     /**Register a scope. */
     registerScope(scopeId:string, element:HTMLSvgElement){
-        this.scopes.push({scopeId,styles:[],element})
+        this.scopes.push({scopeId,styles:[],element,initialStyle:element.classList.value})
         return element
     }
     /**Register a style for a scope. */
     registerScopeStyle(scopeId:string, id:string, style:string, initial?:boolean){
+        //add style that doesn't exist yet (required for next & previous to work correctly)
+        if (!this.styles.find((s) => s.id === id)) this.styles.push({id,style:""})
+
         const scope = this.scopes.find((s) => s.scopeId === scopeId)
         if (!scope) return this
         scope.styles.push({id,style})
@@ -175,26 +180,34 @@ class _JRCClassStyleElement {
         return this
     }
     /**Use a style from a scope. */
-    #setScopeStyle(scopeId:string, id:string){
+    #setScopeStyle(scopeId:string, id?:string){
+        if (!id) return
+        this.currentStyleId = id
         const scope = this.scopes.find((s) => s.scopeId === scopeId)
         if (!scope) return
         const style = scope.styles.find((s) => s.id === id)
         if (!style) return
-        scope.element.classList.value = style.style
+        scope.element.classList.value = scope.initialStyle+" "+style.style
     }
 
     /**Register a style for the global element. */
     registerGlobalStyle(id:string, style:string, initial?:boolean){
-        this.styles.push({id,style})
+        //create style or overwrite when it already exists.
+        const i = this.styles.findIndex((s) => s.id === id)
+        if (i > -1){
+            this.styles[i] = {id,style}
+        }else this.styles.push({id,style})
+
         if (initial) this.#setGlobalStyle(id)
         return this
     }
     /**Use a style from the global element. */
-    #setGlobalStyle(id:string){
+    #setGlobalStyle(id?:string){
+        if (!id) return
+        this.currentStyleId = id
         const style = this.styles.find((s) => s.id === id)
         if (!style) return
-        this.element.classList.value = style.style
-        this.currentStyle = id
+        this.element.classList.value = this.initialStyle+" "+style.style
     }
     
     /**Set the style. */
@@ -204,44 +217,43 @@ class _JRCClassStyleElement {
     }
     /**Go to the next style. */
     nextStyle(){
-        if (!this.currentStyle){
+        if (!this.currentStyleId){
             //use first style
-            if (!this.styles[0]) return
-            this.#setGlobalStyle(this.styles[0].id)
-            this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,this.styles[0].id))
+            if (this.styles[0]) this.#setGlobalStyle(this.styles[0].id)
+            this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,s.styles[0].id))
         }else{
             //find current style
-            const i = this.styles.findIndex((s) => s.id === this.currentStyle)
+            const i = this.styles.findIndex((s) => s.id === this.currentStyleId)
             if (i > -1 && this.styles[i+1]){
                 //use next style
                 this.#setGlobalStyle(this.styles[i+1].id)
-                this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,this.styles[i+1].id))
+                this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,s.styles[i+1]?.id))
             }else if (i > -1){
                 //go back to first style
                 this.#setGlobalStyle(this.styles[0].id)
-                this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,this.styles[0].id))
+                this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,s.styles[0].id))
             }
         }
     }
     /**Go to the previous style. */
     previousStyle(){
-        if (!this.currentStyle){
+        if (!this.currentStyleId){
             //use first style
             if (this.styles[0]) this.#setGlobalStyle(this.styles[0].id)
-                this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,this.styles[0].id))
+            this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,s.styles[0].id))
         }else{
             //find current style
-            const i = this.styles.findIndex((s) => s.id === this.currentStyle)
+            const i = this.styles.findIndex((s) => s.id === this.currentStyleId)
             if (i > -1 && this.styles[i-1]){
                 //use next style
                 this.#setGlobalStyle(this.styles[i-1].id)
-                this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,this.styles[i-1].id))
+                this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,s.styles[i-1]?.id))
             }else if (i > -1){
                 //go back to last style
                 const last = this.styles.at(-1)
                 if (!last) return
                 this.#setGlobalStyle(last.id)
-                this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,last.id))
+                this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,s.styles.at(-1)?.id))
             }
         }
     }
