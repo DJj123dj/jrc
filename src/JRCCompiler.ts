@@ -100,7 +100,7 @@ export const _JRCCreateElement = (tag:string|((props:object|undefined, children:
 	})
 
 	children.forEach((child) => {
-		_JRCAppendChild(element, child)
+        if (typeof child != "undefined" && child != null) _JRCAppendChild(element, child)
 	})
 
 	return element
@@ -145,4 +145,108 @@ export class _JRCState<Type extends number|string|boolean> {
         if (typeof limit == "number" && current <= limit) return
         this.setState((current-decrement) as Primitive<Type>)
     }
+}
+
+export function _JRCClassStyle(props:{class:string}): string {
+    return props.class
+}
+
+class _JRCClassStyleElement {
+    element: HTMLSvgElement
+    scopes: {scopeId:string, styles:{id:string, style:string}[], element:HTMLSvgElement}[] = []
+    styles: {id:string, style:string}[] = []
+    currentStyle: string|null = null
+
+    constructor(element:(manager:_JRCClassStyleElement) => HTMLSvgElement){
+        this.element = element(this)
+    }
+
+    /**Register a scope. */
+    registerScope(scopeId:string, element:HTMLSvgElement){
+        this.scopes.push({scopeId,styles:[],element})
+        return element
+    }
+    /**Register a style for a scope. */
+    registerScopeStyle(scopeId:string, id:string, style:string, initial?:boolean){
+        const scope = this.scopes.find((s) => s.scopeId === scopeId)
+        if (!scope) return this
+        scope.styles.push({id,style})
+        if (initial) this.#setScopeStyle(scopeId,id)
+        return this
+    }
+    /**Use a style from a scope. */
+    #setScopeStyle(scopeId:string, id:string){
+        const scope = this.scopes.find((s) => s.scopeId === scopeId)
+        if (!scope) return
+        const style = scope.styles.find((s) => s.id === id)
+        if (!style) return
+        scope.element.classList.value = style.style
+    }
+
+    /**Register a style for the global element. */
+    registerGlobalStyle(id:string, style:string, initial?:boolean){
+        this.styles.push({id,style})
+        if (initial) this.#setGlobalStyle(id)
+        return this
+    }
+    /**Use a style from the global element. */
+    #setGlobalStyle(id:string){
+        const style = this.styles.find((s) => s.id === id)
+        if (!style) return
+        this.element.classList.value = style.style
+        this.currentStyle = id
+    }
+    
+    /**Set the style. */
+    setStyle(id:string){
+        this.#setGlobalStyle(id)
+        this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,id))
+    }
+    /**Go to the next style. */
+    nextStyle(){
+        if (!this.currentStyle){
+            //use first style
+            if (!this.styles[0]) return
+            this.#setGlobalStyle(this.styles[0].id)
+            this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,this.styles[0].id))
+        }else{
+            //find current style
+            const i = this.styles.findIndex((s) => s.id === this.currentStyle)
+            if (i > -1 && this.styles[i+1]){
+                //use next style
+                this.#setGlobalStyle(this.styles[i+1].id)
+                this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,this.styles[i+1].id))
+            }else if (i > -1){
+                //go back to first style
+                this.#setGlobalStyle(this.styles[0].id)
+                this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,this.styles[0].id))
+            }
+        }
+    }
+    /**Go to the previous style. */
+    previousStyle(){
+        if (!this.currentStyle){
+            //use first style
+            if (this.styles[0]) this.#setGlobalStyle(this.styles[0].id)
+                this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,this.styles[0].id))
+        }else{
+            //find current style
+            const i = this.styles.findIndex((s) => s.id === this.currentStyle)
+            if (i > -1 && this.styles[i-1]){
+                //use next style
+                this.#setGlobalStyle(this.styles[i-1].id)
+                this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,this.styles[i-1].id))
+            }else if (i > -1){
+                //go back to last style
+                const last = this.styles.at(-1)
+                if (!last) return
+                this.#setGlobalStyle(last.id)
+                this.scopes.forEach((s) => this.#setScopeStyle(s.scopeId,last.id))
+            }
+        }
+    }
+}
+
+export function _JRCInteractiveElement(element:(manager:_JRCClassStyleElement) => HTMLSvgElement){
+    return new _JRCClassStyleElement(element)
 }
