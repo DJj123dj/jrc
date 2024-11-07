@@ -92,7 +92,7 @@ const _JRCCreateElement = (tag, props, ...children) => {
             //this is an event (=> add event listener instead)
             element.addEventListener(name.toLowerCase().substring(2), value);
         }
-        else {
+        else if (typeof value != "undefined") {
             //this is a normal attribute
             element.setAttribute(name, value.toString());
         }
